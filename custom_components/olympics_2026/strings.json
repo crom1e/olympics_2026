@@ -16,5 +16,17 @@
     "abort": {
       "already_configured": "This country is already configured"
     }
+  },
+  "services": {
+    "force_refresh": {
+      "name": "Force refresh medals",
+      "description": "Manually refresh medal data even outside polling hours",
+      "fields": {
+        "country": {
+          "name": "Country",
+          "description": "Country code (e.g., 'USA') or 'all' to refresh all"
+        }
+      }
+    }
   }
 }

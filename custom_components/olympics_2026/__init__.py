@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -28,6 +28,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
+SERVICE_FORCE_REFRESH = "force_refresh"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -36,6 +37,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
+
+    async def handle_force_refresh(call: ServiceCall) -> None:
+        country = call.data.get("country")
+        for entry_id, coord in hass.data[DOMAIN].items():
+            if coord.country_code == country or country == "all":
+                coord.force_refresh = True
+                await coord.async_request_refresh()
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_FORCE_REFRESH, handle_force_refresh
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -54,6 +66,7 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.country_code = entry.data[CONF_COUNTRY]
         self.country_name = PARTICIPATING_COUNTRIES[self.country_code]
+        self.force_refresh = False
 
         super().__init__(
             hass,
@@ -68,7 +81,7 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
         return START_HOUR <= now.hour < END_HOUR
 
     async def _async_update_data(self):
-        if not self._is_within_operating_hours():
+        if not self._is_within_operating_hours() and not self.force_refresh:
             _LOGGER.debug(
                 "Outside operating hours (%s:00-%s:00 CET), using cached data",
                 START_HOUR,
@@ -83,9 +96,11 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
                 medal_data = await self.hass.async_add_executor_job(
                     self._fetch_medal_table
                 )
+                self.force_refresh = False
                 return medal_data
 
         except Exception as err:
+            self.force_refresh = False
             raise UpdateFailed(f"Error fetching medal data: {err}") from err
 
     def _fetch_medal_table(self) -> dict:
