@@ -125,26 +125,35 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
 
             for row in rows:
                 cols = row.find_all(["td", "th"])
-                if len(cols) >= 5:
-                    try:
+                if len(cols) < 4:
+                    continue
+
+                try:
+                    first_col = cols[0]
+                    
+                    if first_col.name == "td" and first_col.get_text(strip=True).isdigit():
+                        rank_text = first_col.get_text(strip=True)
+                        last_rank = rank_text
                         country_cell = cols[1]
-                        country_link = country_cell.find("a")
-                        country_name = (
-                            country_link.get_text(strip=True)
-                            if country_link
-                            else country_cell.get_text(strip=True)
-                        )
+                        medal_offset = 2
+                    else:
+                        country_cell = cols[0]
+                        medal_offset = 1
 
-                        _LOGGER.debug("Found country in table: %s", country_name)
+                    country_link = country_cell.find("a")
+                    country_name = (
+                        country_link.get_text(strip=True)
+                        if country_link
+                        else country_cell.get_text(strip=True)
+                    )
 
-                        if self._matches_country(country_name):
-                            rank_text = cols[0].get_text(strip=True)
-                            if rank_text:
-                                last_rank = rank_text
-                            
-                            gold = int(cols[2].get_text(strip=True) or 0)
-                            silver = int(cols[3].get_text(strip=True) or 0)
-                            bronze = int(cols[4].get_text(strip=True) or 0)
+                    _LOGGER.debug("Found country: %s (rank: %s)", country_name, last_rank)
+
+                    if self._matches_country(country_name):
+                        if len(cols) >= medal_offset + 3:
+                            gold = int(cols[medal_offset].get_text(strip=True) or 0)
+                            silver = int(cols[medal_offset + 1].get_text(strip=True) or 0)
+                            bronze = int(cols[medal_offset + 2].get_text(strip=True) or 0)
 
                             return {
                                 "rank": last_rank,
@@ -154,9 +163,9 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
                                 "total": gold + silver + bronze,
                             }
 
-                    except (ValueError, IndexError) as e:
-                        _LOGGER.warning("Error parsing row: %s", e)
-                        continue
+                except (ValueError, IndexError, AttributeError) as e:
+                    _LOGGER.warning("Error parsing row: %s", e)
+                    continue
 
             _LOGGER.info(
                 "%s not yet in medal table, returning zeros", self.country_name
