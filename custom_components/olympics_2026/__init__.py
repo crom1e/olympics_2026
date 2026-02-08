@@ -134,6 +134,8 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
                             else country_cell.get_text(strip=True)
                         )
 
+                        _LOGGER.debug("Found country in table: %s", country_name)
+
                         if self._matches_country(country_name):
                             rank_text = cols[0].get_text(strip=True)
                             gold = int(cols[2].get_text(strip=True) or 0)
