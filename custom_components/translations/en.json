@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "2026 Winter Olympics Medal Tracker",
+        "description": "Select the country you want to track",
+        "data": {
+          "country": "Country"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Wikipedia",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This country is already configured"
+    }
+  }
+}

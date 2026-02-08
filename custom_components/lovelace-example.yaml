@@ -1,0 +1,86 @@
+# Example Lovelace Dashboard Configuration
+# Copy this to your Lovelace dashboard or create a new view
+
+title: Winter Olympics 2026
+path: olympics
+icon: mdi:ski
+cards:
+  # Norway Card
+  - type: entities
+    title: 🇳🇴 Norway
+    show_header_toggle: false
+    entities:
+      - entity: sensor.norway_rank
+        name: Rank
+        icon: mdi:podium
+      - type: divider
+      - entity: sensor.norway_gold_medals
+        name: Gold
+        icon: mdi:medal
+      - entity: sensor.norway_silver_medals
+        name: Silver
+        icon: mdi:medal-outline
+      - entity: sensor.norway_bronze_medals
+        name: Bronze
+        icon: mdi:medal
+      - entity: sensor.norway_total_medals
+        name: Total
+        icon: mdi:trophy
+
+  # USA Card
+  - type: entities
+    title: 🇺🇸 United States
+    show_header_toggle: false
+    entities:
+      - entity: sensor.united_states_rank
+        name: Rank
+        icon: mdi:podium
+      - type: divider
+      - entity: sensor.united_states_gold_medals
+        name: Gold
+        icon: mdi:medal
+      - entity: sensor.united_states_silver_medals
+        name: Silver
+        icon: mdi:medal-outline
+      - entity: sensor.united_states_bronze_medals
+        name: Bronze
+        icon: mdi:medal
+      - entity: sensor.united_states_total_medals
+        name: Total
+        icon: mdi:trophy
+
+  # Comparison Gauge Card
+  - type: gauge
+    title: Total Medals Comparison
+    entity: sensor.norway_total_medals
+    min: 0
+    max: 40
+    severity:
+      green: 20
+      yellow: 10
+      red: 0
+
+  # Medal Progress Graph
+  - type: history-graph
+    title: Medal Count Over Time
+    hours_to_show: 168
+    entities:
+      - entity: sensor.norway_gold_medals
+        name: Norway Gold
+      - entity: sensor.united_states_gold_medals  
+        name: USA Gold
+
+  # Markdown Card with Dynamic Update
+  - type: markdown
+    title: Latest Update
+    content: >
+      **Norway:** Rank {{ states('sensor.norway_rank') }} with {{
+      states('sensor.norway_total_medals') }} medals
+
+
+      **USA:** Rank {{ states('sensor.united_states_rank') }} with {{
+      states('sensor.united_states_total_medals') }} medals
+
+
+      *Last updated: {{ as_timestamp(states.sensor.norway_total_medals.last_changed)
+      | timestamp_custom('%H:%M %d-%m-%Y') }}*
