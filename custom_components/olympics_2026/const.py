@@ -7,7 +7,7 @@ WIKIPEDIA_URL = "https://en.wikipedia.org/wiki/2026_Winter_Olympics_medal_table"
 
 # CET operating hours
 START_HOUR = 8
-END_HOUR = 23
+END_HOUR = 24
 
 PARTICIPATING_COUNTRIES = {
     "ALB": "Albania",

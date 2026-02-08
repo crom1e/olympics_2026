@@ -33,6 +33,7 @@ SERVICE_FORCE_REFRESH = "force_refresh"
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = OlympicsDataUpdateCoordinator(hass, entry)
+    coordinator.force_refresh = True
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})
@@ -78,7 +79,7 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
     def _is_within_operating_hours(self) -> bool:
         cet_tz = ZoneInfo("Europe/Paris")
         now = datetime.now(cet_tz)
-        return START_HOUR <= now.hour < END_HOUR
+        return START_HOUR <= now.hour <= END_HOUR
 
     async def _async_update_data(self):
         if not self._is_within_operating_hours() and not self.force_refresh:
