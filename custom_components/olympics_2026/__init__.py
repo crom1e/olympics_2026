@@ -121,6 +121,7 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
                 return self._get_zero_medals()
 
             rows = medal_table.find_all("tr")[1:]
+            last_rank = "-"
 
             for row in rows:
                 cols = row.find_all(["td", "th"])
@@ -138,12 +139,15 @@ class OlympicsDataUpdateCoordinator(DataUpdateCoordinator):
 
                         if self._matches_country(country_name):
                             rank_text = cols[0].get_text(strip=True)
+                            if rank_text:
+                                last_rank = rank_text
+                            
                             gold = int(cols[2].get_text(strip=True) or 0)
                             silver = int(cols[3].get_text(strip=True) or 0)
                             bronze = int(cols[4].get_text(strip=True) or 0)
 
                             return {
-                                "rank": rank_text,
+                                "rank": last_rank,
                                 "gold": gold,
                                 "silver": silver,
                                 "bronze": bronze,
